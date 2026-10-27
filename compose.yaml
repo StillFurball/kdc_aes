@@ -1,0 +1,43 @@
+x-node: &node
+  build: .
+  image: kdc-aes
+  volumes:
+    - ./:/app
+  cap_add:
+    - NET_ADMIN
+    - NET_RAW
+
+services:
+  kdc:
+    <<: *node
+    container_name: kdc
+    hostname: kdc
+    networks:
+      kdcnet:
+        ipv4_address: 172.28.0.10
+
+  alice:
+    <<: *node
+    container_name: alice
+    hostname: alice
+    environment:
+      KDC_ADDR: 172.28.0.10:5000
+      PEER: Bob@172.28.0.12:6000
+    networks:
+      kdcnet:
+        ipv4_address: 172.28.0.11
+
+  bob:
+    <<: *node
+    container_name: bob
+    hostname: bob
+    networks:
+      kdcnet:
+        ipv4_address: 172.28.0.12
+
+networks:
+  kdcnet:
+    name: kdcnet
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
